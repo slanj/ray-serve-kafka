@@ -1,10 +1,10 @@
 import asyncio
 from ray import serve
-from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
+from aiokafka import AIOKafkaConsumer
 
 @serve.deployment(num_replicas=1,
                   ray_actor_options={"num_cpus": 0.1, "num_gpus": 0},
-                  health_check_period_s=5,
+                  health_check_period_s=1,
                   health_check_timeout_s=1)
 class RayConsumer:
     def __init__(self, topic):
@@ -18,10 +18,9 @@ class RayConsumer:
         self.healthy = True
 
         self.loop.create_task(self.consume())
-        self.healthy = True
-    
+        
     async def consume(self):
-        await self.consumer.start()
+        await self.consumer.start()        
         print("Consuming started")
         try:
             async for msg in self.consumer:
