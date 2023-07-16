@@ -2,6 +2,7 @@ import asyncio
 from ray import serve
 from aiokafka import AIOKafkaConsumer
 
+
 @serve.deployment(num_replicas=1,
                   ray_actor_options={"num_cpus": 0.1, "num_gpus": 0},
                   health_check_period_s=1,
