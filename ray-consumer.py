@@ -1,4 +1,5 @@
 import asyncio
+import ray
 from ray import serve
 from aiokafka import AIOKafkaConsumer
 
@@ -8,7 +9,8 @@ from aiokafka import AIOKafkaConsumer
                   health_check_period_s=1,
                   health_check_timeout_s=1)
 class RayConsumer:
-    def __init__(self, topic):
+    def __init__(self, topic, model):
+        self.model = model
         self.loop = asyncio.get_running_loop()
 
         self.consumer = AIOKafkaConsumer(
@@ -27,6 +29,7 @@ class RayConsumer:
             async for msg in self.consumer:
                 print("consumed: ", msg.topic, msg.partition, msg.offset,
                     msg.key, msg.value, msg.timestamp)
+                print(self.model(msg.value))
         finally:
             # Will leave consumer group; perform autocommit if enabled.
             await self.consumer.stop()
@@ -40,4 +43,7 @@ class RayConsumer:
 
 topic = "ray-topic"
 
-deployment = RayConsumer.bind(topic)
+def toy_model(text):
+    return "predicted: " + text.decode("utf-8")  
+
+deployment = RayConsumer.bind(topic, toy_model)
